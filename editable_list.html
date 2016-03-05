@@ -1,0 +1,157 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script> 
+<script type="text/javascript"> 
+  
+var refresh = 1; 
+$(document).ready(function(){ 
+	get_items(15); 
+	$("#add_new_item").on('click', function (){ 
+		$.ajax({ 
+			url: '/function.php', 
+			data: { 
+				action:'add', 
+				item: $('#new_item').val() 
+			},  
+			type: "POST", 
+			success: function(data) { 
+				get_items(15); 
+			} 
+		}) 		    		  
+	}) 
+  
+	$('#list_container').on('click', '.edit', function (){ 
+		var parent = $(this).parent(); 
+		var item_id=parent.attr('item_id'); 
+		if(parent.find('.items:first').attr('contenteditable')=="false") { 
+			$.ajax({
+				url: '/function.php', 
+				data: { 
+					action:'set_edit', 
+					item: item_id 
+				},  
+				type: "POST", 
+				success: function(data)  
+				{ 
+					if(data==1) 
+					{
+						refresh = 0; 
+						parent.find('.items:first').attr('contenteditable',true); 
+						parent.find('.edit').text('Apply');
+						parent.find('.items:first').focus();  
+					} 
+					else 
+					{ 
+						alert('редактирование запрещено'); 
+					} 
+				} 
+			}) 
+		} 
+		else 
+		{  
+			parent.find('.items:first').attr('contenteditable',false); 
+			parent.find('.edit').text('Edit');
+			refresh = 1; 
+			$.ajax({ 
+				url: '/function.php', 
+				data: { 
+					action:'edit', 
+					item: item_id, 
+					text: parent.find('.items:first').text() 
+				},  
+				type: "POST", 
+				success: function(data)  
+				{ 
+					if(data==1) {
+						refresh = 1; 
+						get_items(15); 
+					} 
+				} 
+			}) 
+		} 
+	});
+	
+	$('#list_container').on('click', '.remove', function (){ 
+	    var parent = $(this).parent(); 
+	    var item_id=parent.attr('item_id');  
+	    $.ajax({
+	    	url: '/function.php', 
+	    	data: { 
+	    		action:'remove', 
+	    		item: item_id 
+	    	},  
+	    	type: "GET", 
+	    	success: function(data)  
+	    	{ 
+	    		get_items(15); 
+	    	}  
+	    }) 
+	}) 
+	
+	function fun() { 
+		get_items(15); 
+	} 
+	  
+	setInterval(fun, 5000); 
+  }); 
+  
+function get_items(limit) {   
+  if (refresh == 1){ 
+   $.ajax({ 
+     url: '/function.php', 
+     data: { 
+     	action:'get', 
+     	limit:limit  
+     },  
+     type: "POST", 
+     success: function(data) { 
+    	$('#list_container').html(data); 
+     } 
+   }) 
+  } 
+}  
+  
+</script> 
+  
+<div id='main_div'> 
+New item <input id='new_item' > <button id='add_new_item'>Add</button> 
+   <div id='list_container'> 
+  
+   </div> 
+  
+</div> 
+  
+<style> 
+  
+#new_item{ 
+   margin: 20px; 
+   width: 50%; 
+} 
+  
+.item_container{ 
+  
+} 
+#main_div{ 
+    background: #D4D4D4; 
+     width: 700px; 
+     height: 600px; 
+     margin: auto; 
+     text-align: center; 
+} 
+img{ 
+   width: 25px; 
+} 
+button{ 
+   margin: 5px; 
+} 
+.items{   
+     background: white; 
+     width: 70%; 
+     display: inline-block; 
+     margin: auto; 
+     border: solid 1px; 
+} 
+  
+#list_container{ 
+  
+} 
+  
+</style>
